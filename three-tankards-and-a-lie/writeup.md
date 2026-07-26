@@ -1,68 +1,70 @@
 # Three Tankards and a Lie — Coding Challenge
 
-**Category:** Coding / Simulation  
-**Challenge:** Three Tankards and a Lie (Cyber Apocalypse 2026)  
-**Target:** `154.57.164.67:32182`  
+**CTF:** Cyber Apocalypse 2026  
+**Category:** Coding  
+**Challenge:** Three Tankards and a Lie  
 **Flag:** `HTB{n3v3r_pl4ys_4lw4ys_w4tch3s}`
 
 ---
 
-## Overview
+## Scenario
 
-A shell-game simulation: N tankards (positions 1..N) each start holding their own item. M swaps exchange the contents of two positions. Q queries ask where a given starting item ends up after all swaps.
+The Drowned Bell doesn't ask questions — which is exactly why Ferro Quicktongue runs his nightly game there. Three dented tankards, one bent copper chit, and a room full of off-duty gate clerks betting against a man whose hands move faster than his mouth.
 
-Essentially: given a sequence of position swaps and a list of starting items, compute the final position of each queried item.
+What catches Rin Kagetsura's eye is a courier running the exact same swap-and-shuffle — except the thing sliding under those tankards isn't a copper chit, it's a folded scrap bound for someone at Suncourt. Every swap happens in plain sight — the only question left is which tankard the message is sitting under once the shuffling finally stops.
+
+**Target:** `154.57.164.67:32182`
 
 ---
 
-## How We Solved It — Reasoning
+## Analysis
 
-### Understanding the Problem
+### Problem Specification
 
-The narrative sets up a shell game — three tankards, a bent copper chit, and a courier running swaps. The key insight from the flavor text:
+| Variable | Meaning |
+|----------|---------|
+| N | Number of tankards (positions 1..N) |
+| M | Number of swaps performed |
+| Q | Number of starting positions to track |
 
-> "Rin doesn't care about their coin — but working out where every marked tankard actually ends up, theirs included, is the only way to know which one held the real message."
+- Tankard `i` starts holding item `i`
+- Each swap `a b` exchanges the contents of positions `a` and `b`
+- For each query `p`, print the final position of the item that started at `p`
 
-This maps directly to tracking items through a sequence of position swaps. The input format confirmed it:
+**Constraints:** N ≤ 2000, M ≤ 5000, Q ≤ 2000
 
-- `N M Q`: N tankards, M swaps, Q queries
-- Each swap line: `a b` — swap contents of positions `a` and `b`
-- Each query line: `p` — "where does the item that started at position `p` end up?"
+### The Vulnerability
 
-### Approach
+No vulnerability — this is a simulation problem. The challenge is implementing the swap-tracking efficiently enough to handle all test cases within the time limit.
 
-We used dual-index tracking with two arrays:
+A naive approach (scanning for item positions each query) would be O(M × N) or O(N × Q). We need **O(N + M + Q)** total.
 
-1. **`pos[item]`** — the current position of each item (indexed by item ID)
-2. **`item_at[pos]`** — the item currently sitting at each position (indexed by position)
+---
 
-**Initial state** (N=5):  
-- `pos = [0, 1, 2, 3, 4, 5]` (item `i` starts at position `i`)  
-- `item_at = [0, 1, 2, 3, 4, 5]` (position `i` holds item `i`)
+## Solution
 
-**Per swap (a, b):**
+### Approach: Dual-Index Tracking
+
+We maintain two complementary arrays:
+
+1. **`pos[item]`** — the current position of each item
+2. **`item_at[pos]`** — the item currently sitting at each position
+
+Both start as identity mappings: `pos[i] = i` and `item_at[i] = i`.
+
+On each swap `(a, b)`:
+
 ```
 item_a = item_at[a]    # who's at position a?
 item_b = item_at[b]    # who's at position b?
-pos[item_a] = b        # item from position a now goes to b
-pos[item_b] = a        # item from position b now goes to a
+pos[item_a] = b        # item from position a moves to b
+pos[item_b] = a        # item from position b moves to a
 item_at[a], item_at[b] = item_at[b], item_at[a]  # swap position contents
 ```
 
-Each swap is O(1).
+**Complexity:** Each swap is O(1). Each query is O(1) — just `pos[p]`.
 
-**After all M swaps:** for each query `p`, simply read `pos[p]` — O(1) per query.
-
-Total complexity: **O(N + M + Q)** time, **O(N)** space.
-
-### Edge Cases
-
-- `M = 0`: no swaps — every query `p` returns `p`
-- Large ranges: N ≤ 2000, M ≤ 5000 — well within Python's capacity
-
----
-
-## Solution Code (Python)
+### Solution Code
 
 ```python
 import sys
@@ -98,11 +100,9 @@ if __name__ == "__main__":
     solve()
 ```
 
----
+### Execution
 
-## Execution
-
-The challenge provides a Monaco code editor at `http://154.57.164.67:32182/`. The code runs by POSTing to `/run`:
+The challenge provides a Monaco code editor at the target URL. Code is submitted via POST to `/run`:
 
 ```
 POST /run
@@ -114,21 +114,25 @@ Content-Type: application/json
 }
 ```
 
-The server feeds test cases (random input) to stdin, captures stdout, and compares against expected output. On all-pass, the response includes `challengeCompleted: true` and the flag.
+The server feeds random test cases to stdin, captures stdout, and compares against expected output. On all-pass, the response includes `challengeCompleted: true` and the flag.
 
 ---
 
-## Flag
+## How We Solved It — Reasoning
 
-| Field | Value |
-|-------|-------|
-| **Flag** | `HTB{n3v3r_pl4ys_4lw4ys_w4tch3s}` |
-| **Method** | Simulated the swap sequence with dual-index tracking |
+The narrative — a shell game where the courier swaps tankards and the observer must track which one holds the message — maps directly to tracking items through position swaps.
+
+The flavortext clue was explicit: *"working out where every marked tankard actually ends up, theirs included, is the only way to know which one held the real message."* This told us we needed to track final positions of specific starting items, not just the contents of a single position.
+
+The dual-index approach was chosen for its O(1) per-swap and O(1) per-query performance. One array tracks where each item currently sits (`pos[item]`), and the other tracks what sits at each position (`item_at[pos]`). Every swap updates both in lockstep.
+
+The key edge case is 1-indexing — positions are 1..N, not 0..N-1. Allocating `list(range(N + 1))` keeps index 0 as an unused sentinel, avoiding off-by-one errors throughout.
 
 ---
 
-## Caveats
+## Key Takeaways
 
-1. **Reading input as split tokens** is critical — the server provides random test data, not the example input. Using `sys.stdin.read().split()` handles any whitespace-separated format.
-2. **1-indexed arrays** matter — positions are 1..N, not 0..N-1. Allocate `list(range(N + 1))` to keep zero as a sentinel.
-3. **The flag is a play on the shell game** — "never plays, always watches" (Rin's approach: observe the swaps instead of betting).
+- **Dual-index tracking** is the standard pattern for tracking items through position swaps — maintain both directions of the mapping
+- **O(N + M + Q)** is achievable even with the simplest approach; no need for linked lists or complex data structures
+- **1-indexed arrays in programming challenges** are a constant gotcha — always allocate N+1 slots
+- **Reading input as split tokens** (`sys.stdin.read().split()`) handles any whitespace-separated format the test harness sends
