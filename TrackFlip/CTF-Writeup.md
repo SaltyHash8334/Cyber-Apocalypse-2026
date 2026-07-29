@@ -245,4 +245,4 @@ The exploit sends at approximately 30-50Hz (one message per EAGLE every ~30ms). 
 
 ## Flag
 
-*Flag pending — exploit is verified working but mission currently in FAILED state. Will update when mission restarts and flag is captured.*
+*Flag pending — exploit is verified working but the remote mission remains in FAILED state. The server continues to expose the relay and COP, but no restart endpoint or automatic reset has been observed.*
