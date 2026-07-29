@@ -157,7 +157,7 @@ Nonce:           1500000000000000010000002d
 
 ### Step 4 — Decrypt the Protected Payloads
 
-The following solver decrypts all 11 protected frames and extracts printable strings:
+The following solver performs the payload decryption for all 11 protected frames and extracts printable strings. The ciphertext portion reproduces consistently across every protected frame. Standard CCM* MIC verification does not succeed with the capture's AAD/authentication construction, so the solver explicitly treats this as payload decryption rather than claiming standard CCM* authentication verification.
 
 ```python
 #!/usr/bin/env python3
@@ -228,7 +228,7 @@ The first useful hypothesis was that the join sequence would expose a network ke
 
 A second hypothesis was that the displayed Transport Key value could be used directly as the NWK key. Direct CCM* attempts failed. The important correction was to treat the displayed 16-byte value as an encrypted key block and decrypt it with the well-known Trust Center Link Key. This produced `99df0108b1c4d6ad38cdc2fc078661a2`, which generated valid plaintext for every protected frame.
 
-A third dead end was using only the low three security-level bits (`0x05`) as the last nonce byte, following the simplified CCM* description. That produced plausible-looking but incorrect output and failed authentication. The capture's implementation uses the full Security Control byte (`0x2d`) in the nonce. With the derived network key and full control byte, the ciphertext decrypts consistently across all 11 protected frames.
+A third dead end was using only the low three security-level bits (`0x05`) as the last nonce byte, following the simplified CCM* description. That produced incorrect output. The capture's implementation uses the full Security Control byte (`0x2d`) in the counter nonce. With the derived network key and full control byte, the ciphertext decrypts consistently across all 11 protected frames. Standard CCM* MIC verification still fails, indicating that the capture's authentication/AAD construction is customized or inconsistent with the standard profile.
 
 The repeated short reports from devices `0x0011` through `0x0014` serve as a useful cross-check: they all decrypt into similarly structured 16-byte application messages. The long frame from newly joined device `0x0015` is the only payload large enough to contain the flag, and its plaintext contains the expected `HTB{...}` marker.
 
