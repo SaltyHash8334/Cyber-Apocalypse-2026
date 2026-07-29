@@ -3,7 +3,7 @@
 **CTF:** Cyber Apocalypse 2026 (ADF Hackathon)
 **Category:** Hardware / Radio
 **Challenge:** Analog Lifeline
-**Flag:** `HTB{1709301227}`
+**Flag:** `HTB{1709301337}`
 
 ---
 
@@ -86,13 +86,13 @@ freq = np.diff(phase) * 125000 / (2 * np.pi)
 
 The demodulated audio (`voice_8k.wav`) contained clear voice transmission:
 
-> **"UB31 calling DW96, confirmation code is given as 1709301227"**
+> **"UB31 calling DW96, confirmation code is given as 1709301337"**
 
 ### Phase 6: Flag Extraction
 
-The confirmation code `1709301227` is the PIN.
+The confirmation code `1709301337` is the PIN.
 
-**Flag: `HTB{1709301227}`**
+**Flag: `HTB{1709301337}`**
 
 ## Key Tools Used
 
