@@ -7,7 +7,7 @@
 | **Challenge** | TrackFlip |
 | **Category** | Hardware / Military Protocol |
 | **Protocol** | JREAP-C (Joint Range Extension Applications Protocol C) |
-| **Target** | `154.57.164.67:30661` (binary relay), `:32229` (COP display) |
+| **Target** | `154.57.164.67:30142` (binary relay), `:32398` (COP display) |
 | **Vulnerability** | Unauthenticated participant registration + no identity override validation |
 | **Exploit** | Race-condition J2.0 air-track injection faster than operator reassert |
 
@@ -245,4 +245,8 @@ The exploit sends at approximately 30-50Hz (one message per EAGLE every ~30ms). 
 
 ## Flag
 
-*Flag pending — exploit is verified working but the remote mission remains in FAILED state. The server continues to expose the relay and COP, but no restart endpoint or automatic reset has been observed.*
+```text
+HTB{J-S3r13s_Tr4ck_1d3nt1ty_Fl1p}
+```
+
+The flag was captured live from the replacement instance `154.57.164.67:32398` after the injector streamed 6,306 valid FRIEND updates through the relay at `154.57.164.67:30142`. At capture time, the mission remained active with 222 seconds remaining and all three EAGLE tracks were reported as FRIEND.
